@@ -1,0 +1,28 @@
+{
+  "facebook": {
+    "url": "https://www.facebook.com/profile.php?id=61555407845738",
+    "label": "עמוד הפייסבוק",
+    "status": "live"
+  },
+  "whatsapp": {
+    "url": null,
+    "label": "וואטסאפ",
+    "status": "coming_soon"
+  },
+  "padlet": {
+    "url": null,
+    "label": "פדלט",
+    "status": "coming_soon"
+  },
+  "remote_learning_canva": {
+    "url": "https://www.canva.com/design/DAHEwOD5MBM/hqxzFTZPnmAaJcZXLSawjA/view?utm_content=DAHEwOD5MBM",
+    "label": "מערכת למידה מרחוק",
+    "status": "live"
+  },
+  "remote_learning_video": {
+    "url": "https://www.youtube.com/watch?v=ceB8Py40zSI",
+    "label": "סרטון מחיי בית הספר",
+    "status": "live"
+  },
+  "source": "assaf-direct-2026-09-17"
+}
