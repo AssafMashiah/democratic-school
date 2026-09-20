@@ -25,7 +25,11 @@
   --c-accent-soft:  #DDEBDC;  /* nav active bg (white header variant) — used on cream */
 
   /* ── joy accents (sparingly: pill, dot, hero CTA) ────────────── */
-  --c-joy:          #EC488D;  /* magenta — "coming soon" pill, hero CTA */
+  --c-joy:          #C42674;  /* magenta — "coming soon" pill, hero CTA.
+                                * Darkened from #EC488D (3.57:1 white) to #C42674
+                                * (5.38:1 white) so 17px fw700 button text on the
+                                * hero CTA meets WCAG AA-normal. Same fix lifts
+                                * the 13px "בקרוב" pill text to AA-normal too. */
   --c-joy-soft:     #FBD9E8;  /* disabled link card bg */
   --c-leaf:         #C5D820;  /* lime — decorative dot only */
 
@@ -119,6 +123,24 @@ main {
   outline: 3px solid var(--c-focus-ring);
   outline-offset: 3px;
   border-radius: var(--radius-1);
+}
+
+/* ─── a11y: focus ring overrides on dark surfaces ────────────────
+ * The green ring (--c-focus-ring, same as --c-accent #2F7A55) only
+ * has 1.28:1 on the --c-brand-deep header band and 1.46:1 on the
+ * --c-joy CTA — functionally invisible. Override the outline on the
+ * two surfaces where users actually tab (nav anchors on the blue band
+ * and the hero CTA on pink) so the ring reaches WCAG AA-large (≥3:1).
+ * Use --c-text-invert (#FCFCFA) which contrasts ≥AA-large on both.
+ */
+.site-header :focus-visible,
+.site-header :focus-visible *,
+.site-nav a:focus-visible,
+.site-title:focus-visible {
+  outline-color: var(--c-text-invert);
+}
+.btn--primary:focus-visible {
+  outline-color: var(--c-text-invert);
 }
 
 /* ─── a11y: reduced motion (we ship no animations; this keeps it that way) ── */
