@@ -1,0 +1,12 @@
+{
+  "name": "democratic-school",
+  "private": true,
+  "scripts": {
+    "deploy:dev": "wrangler pages deploy . --project-name democratic-school --branch dev --commit-dirty=true",
+    "deploy:prod": "wrangler pages deploy . --project-name democratic-school --branch main --commit-dirty=true",
+    "logs:dev": "wrangler pages deployment tail --project-name democratic-school"
+  },
+  "devDependencies": {
+    "wrangler": "^4.106.0"
+  }
+}
