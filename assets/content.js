@@ -1,143 +1,144 @@
-// Democratic School — content loader
-// Tiny vanilla JS: fetch JSON, render into placeholders. No framework.
-// Each page declares <main data-page="NAME">; this file picks a renderer.
+// Democratic School — content loader. Vanilla JS, no framework.
+// All user-supplied strings set via textContent (no innerHTML) — preserves
+// the no-XSS posture from Phase 1.
 
 (function () {
-  const base = document.currentScript ? document.currentScript.dataset.base || './content/' : './content/';
-  const page = (document.querySelector('main[data-page]') || {}).dataset;
+  const base = (document.currentScript && document.currentScript.dataset.base) || './content/';
+  const page = (document.querySelector('main[data-page]') || {}).dataset && document.querySelector('main[data-page]').dataset.page;
+  const j = (n) => fetch(base + n).then((r) => r.ok ? r.json() : Promise.reject(new Error('fetch ' + n + ' ' + r.status)));
+  const $ = (id) => document.getElementById(id);
+  const clear = (n) => { while (n.firstChild) n.removeChild(n.firstChild); };
+  const make = (t, c, txt) => { const x = document.createElement(t); if (c) x.className = c; if (txt != null) x.textContent = txt; return x; };
 
-  async function j(name) {
-    const r = await fetch(base + name);
-    if (!r.ok) throw new Error('fetch ' + name + ' ' + r.status);
-    return r.json();
+  function linkCard(l) {
+    const isLive = l && l.url;
+    const a = make(isLive ? 'a' : 'span', 'link-card');
+    if (isLive) { a.href = l.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+    else a.setAttribute('aria-disabled', 'true');
+    a.appendChild(make('span', 'link-card__label', (l && l.label) || ''));
+    if (!isLive) a.appendChild(make('span', 'link-card__status', 'בקרוב'));
+    else { const ar = make('span', 'link-card__arrow', '↗'); ar.setAttribute('aria-hidden', 'true'); a.appendChild(ar); }
+    return a;
+  }
+
+  function contactDl(s) {
+    const dl = make('dl');
+    [['מנהל', s.principal.name],
+     ['דוא״ל', ['a', null, s.principal.email, 'mailto:' + s.principal.email]],
+     ['טלפון', ['a', null, s.principal.phone, 'tel:' + s.principal.phone.replace(/[^0-9+]/g, '')]],
+     ['כתובת', s.address]].forEach(([k, v]) => {
+      dl.appendChild(make('dt', null, k));
+      const dd = make('dd');
+      if (typeof v === 'string') dd.textContent = v;
+      else { const a = make(v[0], v[1], v[2]); a.href = v[3]; dd.appendChild(a); }
+      dl.appendChild(dd);
+    });
+    return dl;
+  }
+
+  function pillarCard(p) {
+    const m = (p.body_he || '').match(/\(([^)]+)\)\s*$/);
+    const body = (p.body_he || '').replace(/\s*\(([^)]+)\)\s*$/, '');
+    const art = make('article', 'pillar');
+    const icon = make('span', 'pillar__icon', (p.title_he || 'א').trim().charAt(0));
+    icon.setAttribute('aria-hidden', 'true');
+    art.appendChild(icon);
+    art.appendChild(make('h3', 'pillar__title', p.title_he));
+    art.appendChild(make('p', 'pillar__body', body));
+    if (m) art.appendChild(make('span', 'pillar__quote-author', m[1]));
+    return art;
+  }
+
+  function messageCard(m) {
+    const art = make('article', 'message');
+    const meta = make('div', 'message__meta');
+    if (m.date) { const t = make('time', 'message__time', m.date); t.dateTime = m.date; meta.appendChild(t); }
+    if (m.author) {
+      if (m.date) { const s = make('span', 'message__sep', '·'); s.setAttribute('aria-hidden', 'true'); meta.appendChild(s); }
+      meta.appendChild(make('span', 'message__author', m.author));
+    }
+    art.appendChild(meta);
+    if (m.title) art.appendChild(make('h3', 'message__title', m.title));
+    art.appendChild(make('p', 'message__body', m.body));
+    return art;
+  }
+
+  // FAQ accordion item. Built from a {q_he, a_he, source} entry.
+  // The first item in the list opens by default so the page never looks empty.
+  function faqItem(item, open) {
+    const det = make('details', 'faq__item');
+    if (open) det.open = true;
+    const sum = make('summary', 'faq__q', item.q_he);
+    const body = make('div', 'faq__a', item.a_he);
+    const src = make('p', 'faq__source', 'מקור: ' + (item.source || 'assaf-direct'));
+    det.appendChild(sum);
+    det.appendChild(body);
+    det.appendChild(src);
+    return det;
+  }
+
+  function faqList(items) {
+    const wrap = make('div', 'faq');
+    (items || []).forEach((it, i) => wrap.appendChild(faqItem(it, i === 0)));
+    return wrap;
+  }
+
+  function setJsonLd(faqItems) {
+    const ld = document.querySelector('script[type="application/ld+json"]');
+    if (!ld) return;
+    ld.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: (faqItems || []).map((it) => ({
+        '@type': 'Question',
+        name: it.q_he,
+        acceptedAnswer: { '@type': 'Answer', text: it.a_he },
+      })),
+    });
   }
 
   const renderers = {
     async home() {
-      const [school, phil, links] = await Promise.all([
-        j('school.json'), j('philosophy.json'), j('links.json')
-      ]);
-      const el = (id) => document.getElementById(id);
-      if (el('hero-name')) el('hero-name').textContent = school.name_full_he;
-      if (el('hero-tagline')) el('hero-tagline').textContent = school.tagline_he;
-      const intro = el('philosophy-intro'); if (intro) intro.textContent = phil.intro;
-      const grid = el('pillars'); if (grid) {
-        grid.innerHTML = phil.pillars.map((p) =>
-          '<article class="card"><h3>' + p.title_he + '</h3><p>' + p.body_he + '</p></article>'
-        ).join('');
+      const [school, phil, links] = await Promise.all([j('school.json'), j('philosophy.json'), j('links.json')]);
+      if ($('hero-name')) $('hero-name').textContent = school.name_full_he;
+      if ($('hero-tagline')) $('hero-tagline').textContent = school.tagline_he;
+      if ($('philosophy-intro')) $('philosophy-intro').textContent = phil.intro;
+      const g = $('pillars'); if (g) { clear(g); phil.pillars.forEach((p) => g.appendChild(pillarCard(p))); }
+      const le = $('links'); if (le) {
+        clear(le);
+        ['facebook', 'whatsapp', 'padlet', 'remote_learning_canva', 'remote_learning_video'].map((k) => links[k]).filter(Boolean).forEach((l) => le.appendChild(linkCard(l)));
       }
-      const linksEl = el('links'); if (linksEl) {
-        const items = [links.facebook, links.whatsapp, links.padlet, links.remote_learning_canva, links.remote_learning_video];
-        linksEl.innerHTML = items.map((l) => linkCard(l)).join('');
-      }
-      const contact = el('contact-strip'); if (contact) contact.appendChild(contactDl(school));
+      const c = $('contact-strip'); if (c) { clear(c); c.appendChild(contactDl(school)); }
     },
     async registration() {
-      const reg = await j('registration.json');
-      const el = (id) => document.getElementById(id);
-      if (el('reg-window')) el('reg-window').textContent = reg.window;
-      if (el('reg-audience')) el('reg-audience').textContent = reg.audience_note;
-      if (el('reg-lottery')) el('reg-lottery').textContent = reg.lottery_note;
-      if (el('reg-payment')) el('reg-payment').textContent = reg.payment_note;
-      if (el('reg-transport')) el('reg-transport').textContent = reg.transport_note;
+      const r = await j('registration.json');
+      [['reg-window', r.window], ['reg-audience', r.audience_note], ['reg-lottery', r.lottery_note], ['reg-payment', r.payment_note], ['reg-transport', r.transport_note]].forEach(([id, v]) => { const n = $(id); if (n) n.textContent = v || ''; });
     },
     async contact() {
-      const school = await j('school.json');
-      const el = document.getElementById('contact-card');
-      if (el) el.appendChild(contactDl(school));
+      const s = await j('school.json');
+      const c = $('contact-card'); if (c) { clear(c); c.appendChild(contactDl(s)); }
     },
     async parents() {
       const p = await j('parents.json');
-      const desc = document.getElementById('parents-desc');
-      if (desc) desc.textContent = p.description;
-      const list = document.getElementById('parents-list');
-      if (list && (!p.messages || p.messages.length === 0)) {
-        list.innerHTML = '<div class="empty-state"><h3>אין הודעות כרגע</h3><p>כאן יופיעו הודעות הנהגת הורים ברגע שיתווספו.</p></div>';
-      }
-      if (list && p.messages && p.messages.length > 0) {
-        list.innerHTML = '';
-        list.appendChild(parentMessages(p.messages));
-      }
+      if ($('parents-desc')) $('parents-desc').textContent = p.description || '';
+      const list = $('parents-list'); if (!list) return;
+      clear(list);
+      if (!p.messages || !p.messages.length) {
+        const e = make('div', 'empty-state');
+        e.appendChild(make('h3', null, 'אין הודעות כרגע'));
+        e.appendChild(make('p', null, 'כאן יופיעו הודעות הנהגת הורים ברגע שיתווספו.'));
+        list.appendChild(e);
+      } else p.messages.forEach((m) => list.appendChild(messageCard(m)));
     },
     async 'new-parents'() {
       const [faq, school] = await Promise.all([j('faq.json'), j('school.json')]);
-      const el = (id) => document.getElementById(id);
-      if (el('np-title')) el('np-title').textContent = faq.title_he;
-      if (el('np-tagline')) el('np-tagline').textContent = school.tagline_he;
-      if (el('np-intro')) el('np-intro').textContent = faq.intro_he;
-      const list = el('np-faq-list'); if (list) list.appendChild(faqList(faq.items));
-      const ld = document.querySelector('script[type="application/ld+json"]');
-      if (ld) {
-        ld.textContent = JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'FAQPage',
-          mainEntity: faq.items.map((it) => ({
-            '@type': 'Question',
-            name: it.q_he,
-            acceptedAnswer: { '@type': 'Answer', text: it.a_he },
-          })),
-        });
-      }
+      if ($('np-title')) $('np-title').textContent = faq.title_he || 'חדשים כאן?';
+      if ($('np-tagline')) $('np-tagline').textContent = school.tagline_he || '';
+      if ($('np-intro')) $('np-intro').textContent = faq.intro_he || '';
+      const list = $('np-faq-list'); if (list) { clear(list); list.appendChild(faqList(faq.items)); }
+      setJsonLd(faq.items);
     },
   };
 
-  function linkCard(l) {
-    if (!l || !l.url) {
-      return '<div class="link-card" aria-disabled="true"><span class="link-card__label">' + (l && l.label || '') + '</span><span class="link-card__status">בקרוב</span></div>';
-    }
-    return '<a class="link-card" href="' + l.url + '" target="_blank" rel="noopener noreferrer"><span class="link-card__label">' + l.label + '</span><span aria-hidden="true">↗</span></a>';
-  }
-
-  function contactDl(school) {
-    const dl = document.createElement('dl');
-    dl.innerHTML =
-      '<dt>מנהל</dt><dd>' + school.principal.name + '</dd>' +
-      '<dt>דוא״ל</dt><dd><a href="mailto:' + school.principal.email + '">' + school.principal.email + '</a></dd>' +
-      '<dt>טלפון</dt><dd><a href="tel:' + school.principal.phone.replace(/[^0-9+]/g,'') + '">' + school.principal.phone + '</a></dd>' +
-      '<dt>כתובת</dt><dd>' + school.address + '</dd>';
-    return dl;
-  }
-
-  function faqList(items) {
-    const wrap = document.createElement('div');
-    wrap.className = 'faq';
-    items.forEach((it, i) => {
-      const det = document.createElement('details');
-      det.className = 'faq__item';
-      if (i === 0) det.open = true;
-      const sum = document.createElement('summary');
-      sum.className = 'faq__q';
-      sum.textContent = it.q_he;
-      const body = document.createElement('div');
-      body.className = 'faq__a';
-      body.textContent = it.a_he;
-      const src = document.createElement('p');
-      src.className = 'faq__source';
-      src.textContent = 'מקור: ' + (it.source || 'assaf-direct');
-      det.appendChild(sum); det.appendChild(body); det.appendChild(src);
-      wrap.appendChild(det);
-    });
-    return wrap;
-  }
-
-  function parentMessages(messages) {
-    const wrap = document.createElement('ul');
-    wrap.className = 'message-list';
-    for (const m of messages) {
-      const li = document.createElement('li');
-      li.className = 'message';
-      const h = document.createElement('h3'); h.className = 'message__title'; h.textContent = m.title_he;
-      const meta = document.createElement('p'); meta.className = 'message__meta';
-      meta.textContent = (m.date || '') + (m.author ? ' · ' + m.author : '');
-      const body = document.createElement('p'); body.className = 'message__body'; body.textContent = m.body_he;
-      li.appendChild(h); li.appendChild(meta); li.appendChild(body);
-      wrap.appendChild(li);
-    }
-    return wrap;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const p = page && page.page;
-    if (p && renderers[p]) renderers[p]().catch((e) => console.error(e));
-  });
+  document.addEventListener('DOMContentLoaded', () => { if (page && renderers[page]) renderers[page]().catch(console.error); });
 })();

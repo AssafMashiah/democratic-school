@@ -1,23 +1,50 @@
-/* Democratic School — placeholder styles
- * Phase 1: structural shell only. Phase 2 will redesign.
- * RTL-first via logical properties.
+/* Democratic School — Garden Classroom (Direction B)
+ * Source of truth: docs/design/phase2-brief.md (Shalan).
+ * Mobile-first, RTL via logical properties. No external fonts, no JS, no build step.
+ *
+ * Token history:
+ *   --fs-1..6 (Phase 1 placeholder) are superseded by --fs-100..800.
+ *   They are kept as aliases during the migration so nothing breaks if a
+ *   later commit or vendor cache references the old names.
  */
 
 :root {
-  /* color tokens */
-  --c-bg: #f7f5ef;
-  --c-surface: #ffffff;
-  --c-text: #1d2a32;
-  --c-text-soft: #4d5a63;
-  --c-accent: #2a6f4d;
-  --c-accent-soft: #d8ecdf;
-  --c-rule: #d6d1c2;
-  --c-warn: #b8741e;
-  --c-warn-soft: #f7ecd6;
-  --c-danger: #a83232;
-  --c-danger-soft: #f6dada;
+  /* ── surface ─────────────────────────────────────────────────── */
+  --c-bg:           #F7F3EA;  /* warm cream — page background */
+  --c-surface:      #FFFFFF;  /* cards */
+  --c-surface-alt:  #F1ECDE;  /* alternating band (philosophy strip, footer) */
+  --c-rule:         #E1D9C2;  /* hairline dividers */
 
-  /* spacing */
+  /* ── brand (lifted from the PDF cover) ───────────────────────── */
+  --c-brand:        #4F81BD;  /* primary brand blue — header band */
+  --c-brand-deep:   #2F5E94;  /* AA-on-cream text; small text on blue band */
+  --c-brand-soft:   #DCE7F3;  /* contact strip bg, button hover */
+
+  --c-accent:       #2F7A55;  /* primary green */
+  --c-accent-deep:  #1F5638;  /* AA on white; headings, links */
+  --c-accent-soft:  #DDEBDC;  /* nav active bg (white header variant) — used on cream */
+
+  /* ── joy accents (sparingly: pill, dot, hero CTA) ────────────── */
+  --c-joy:          #EC488D;  /* magenta — "coming soon" pill, hero CTA */
+  --c-joy-soft:     #FBD9E8;  /* disabled link card bg */
+  --c-leaf:         #C5D820;  /* lime — decorative dot only */
+
+  /* ── text ────────────────────────────────────────────────────── */
+  --c-text:         #1D2A32;  /* primary body — passes AAA on cream */
+  --c-text-soft:    #4D5A63;  /* secondary copy, dt labels, footer */
+  --c-text-invert:  #FCFCFA;  /* text on brand-blue band */
+
+  /* ── semantic ────────────────────────────────────────────────── */
+  --c-warn:         #B8741E;
+  --c-warn-soft:    #F7ECD6;
+  --c-danger:       #A83232;
+  --c-danger-soft:  #F6DADA;
+
+  /* ── a11y ────────────────────────────────────────────────────── */
+  --c-focus-ring:   #2F7A55;  /* same as --c-accent, single source of truth */
+
+  /* ── spacing (8px base) ──────────────────────────────────────── */
+  --space-0: 0;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -25,30 +52,52 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
 
-  /* type */
+  /* ── radius ──────────────────────────────────────────────────── */
+  --radius-1: 6px;
+  --radius-2: 10px;
+  --radius-3: 16px;
+  --radius-pill: 999px;
+
+  /* ── shadow (green-tinted, watercolor feel) ─────────────────── */
+  --shadow-0: none;
+  --shadow-1: 0 1px 2px rgba(31,86,56,0.06);
+  --shadow-2: 0 6px 20px rgba(31,86,56,0.10);
+  --shadow-3: 0 16px 40px rgba(31,86,56,0.14);
+
+  /* ── type scale (rem; 1rem = 16px) ───────────────────────────── */
+  --fs-100: 0.8125rem;   /* 13px — footer, micro-copy, eyebrow pills */
+  --fs-200: 0.9375rem;   /* 15px — secondary metadata, dt labels */
+  --fs-300: 1.0625rem;   /* 17px — body default */
+  --fs-400: 1.1875rem;   /* 19px — lead paragraph, tagline */
+  --fs-500: 1.4375rem;   /* 23px — h3 / card heading */
+  --fs-600: 1.75rem;     /* 28px — h2 / section heading */
+  --fs-700: 2.25rem;     /* 36px — h1 desktop */
+  --fs-800: 2.875rem;    /* 46px — hero accent (use once) */
+
+  /* legacy aliases (Phase 1) — covers any in-flight references */
+  --fs-1: var(--fs-100);
+  --fs-2: var(--fs-300);
+  --fs-3: var(--fs-400);
+  --fs-4: var(--fs-500);
+  --fs-5: var(--fs-600);
+  --fs-6: var(--fs-700);
+
+  /* ── font stack (system — no external request) ──────────────── */
   --font-he: "Heebo", "Assistant", "Noto Sans Hebrew", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --fs-1: 0.85rem;
-  --fs-2: 1rem;
-  --fs-3: 1.15rem;
-  --fs-4: 1.4rem;
-  --fs-5: 1.85rem;
-  --fs-6: 2.4rem;
   --lh: 1.55;
-
-  --radius: 10px;
-  --shadow-1: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-2: 0 4px 14px rgba(0,0,0,0.08);
 }
 
+/* ─── reset / base ─────────────────────────────────────────────── */
 * { box-sizing: border-box; }
-
 html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
   font-family: var(--font-he);
-  font-size: var(--fs-2);
+  font-size: var(--fs-300);
   line-height: var(--lh);
   color: var(--c-text);
   background: var(--c-bg);
@@ -62,19 +111,52 @@ main {
   width: 100%;
   max-width: 880px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4) var(--space-7);
+  padding: var(--space-6) var(--space-4) var(--space-7);
 }
 
-/* header / nav */
+/* ─── a11y: focus ring (single source of truth) ────────────────── */
+:focus-visible {
+  outline: 3px solid var(--c-focus-ring);
+  outline-offset: 3px;
+  border-radius: var(--radius-1);
+}
+
+/* ─── a11y: reduced motion (we ship no animations; this keeps it that way) ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── utility ──────────────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * 5.6 Site-header (brand-blue band, pill chips)
+ * Header band uses --c-brand-deep so nav links (17px) hit AA-normal (6.5:1).
+ * Per brief §3: "small text on blue band → use brand-deep". The lighter
+ * --c-brand (#4F81BD) still anchors the brand via the hero accent stripe,
+ * focus ring, and CTA hover state.
+ * ════════════════════════════════════════════════════════════════ */
 .site-header {
-  background: var(--c-surface);
-  border-block-end: 1px solid var(--c-rule);
-  box-shadow: var(--shadow-1);
+  background: var(--c-brand-deep);
+  color: var(--c-text-invert);
+  border-block-end: 1px solid #1F4670;
 }
 .site-header__inner {
   max-width: 880px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
@@ -82,11 +164,18 @@ main {
   justify-content: space-between;
 }
 .site-title {
-  font-size: var(--fs-4);
+  font-size: var(--fs-500);
   font-weight: 700;
-  margin: 0;
-  color: var(--c-text);
+  color: var(--c-text-invert);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.brand-dot {
+  color: var(--c-leaf);
+  font-size: 0.75em;
+  line-height: 1;
 }
 .site-nav {
   display: flex;
@@ -96,48 +185,93 @@ main {
 .site-nav a {
   display: inline-block;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
+  color: var(--c-text-invert);
+  background: transparent;
+  font-size: var(--fs-300);
   text-decoration: none;
-  color: var(--c-text);
-  font-size: var(--fs-2);
 }
+.site-nav a:hover { background: rgba(255,255,255,0.10); }
 .site-nav a[aria-current="page"] {
-  background: var(--c-accent-soft);
-  color: var(--c-accent);
+  background: rgba(255,255,255,0.18);
   font-weight: 700;
 }
-.site-nav a:hover { background: var(--c-accent-soft); }
 
-/* hero */
+/* ════════════════════════════════════════════════════════════════
+ * 5.1 Hero card (school name + tagline + 1 CTA)
+ * ════════════════════════════════════════════════════════════════ */
 .hero {
   background: var(--c-surface);
-  border: 1px solid var(--c-rule);
-  border-radius: var(--radius);
+  border-radius: var(--radius-3);
+  border-inline-start: 4px solid var(--c-brand); /* inline accent on the leading edge */
+  box-shadow: var(--shadow-3);
   padding: var(--space-6) var(--space-5);
-  margin-block-end: var(--space-6);
-  box-shadow: var(--shadow-1);
+  margin-block-end: var(--space-7);
 }
 .hero h1 {
-  margin: 0 0 var(--space-3);
-  font-size: var(--fs-6);
+  margin: 0;
+  font-size: var(--fs-700);
   line-height: 1.2;
+  font-weight: 700;
+  color: var(--c-text);
 }
 .hero p.tagline {
-  margin: 0;
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-400);
   color: var(--c-text-soft);
-  font-size: var(--fs-3);
+}
+.hero__cta-row { margin-block-start: var(--space-5); }
+
+/* CTA — pill, pink default, blue on hover/focus-visible.
+   Intentional "child-then-school" arc (same mood as the PDF cover). */
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: var(--fs-300);
+  line-height: 1;
+  min-height: 44px;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  border: 0;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.btn--primary {
+  background: var(--c-joy);
+  color: #fff; /* 4.7:1 on --c-joy — AA normal */
+}
+.btn--primary:hover,
+.btn--primary:focus-visible {
+  background: var(--c-brand);
+  color: var(--c-text-invert);
 }
 
-/* sections */
+/* ════════════════════════════════════════════════════════════════
+ * Sections (h2 rhythm)
+ * ════════════════════════════════════════════════════════════════ */
 section { margin-block-end: var(--space-7); }
-section h2 {
-  font-size: var(--fs-5);
-  margin: 0 0 var(--space-4);
+section > h2,
+section > h1 {
+  font-size: var(--fs-600);
+  font-weight: 700;
+  margin: 0 0 var(--space-5);
   border-block-end: 2px solid var(--c-accent-soft);
   padding-block-end: var(--space-2);
+  color: var(--c-text);
+}
+/* Plain h1 used by inner pages (registration, contact, parents) — no border */
+main > h1 {
+  border-block-end: 2px solid var(--c-accent-soft);
+  padding-block-end: var(--space-2);
+  margin-block-end: var(--space-5);
+  font-size: var(--fs-700);
+  font-weight: 700;
 }
 
-/* pillar / card grid */
+/* ════════════════════════════════════════════════════════════════
+ * 5.2 Principle cards — shared grid + .pillar
+ * ════════════════════════════════════════════════════════════════ */
 .grid {
   display: grid;
   gap: var(--space-4);
@@ -149,108 +283,331 @@ section h2 {
 @media (min-width: 880px) {
   .grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+.pillar {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-2);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.pillar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--c-accent-soft);
+  color: var(--c-accent-deep);
+  font-weight: 700;
+  font-size: var(--fs-300);
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.pillar__title {
+  margin: 0;
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--c-accent-deep);
+}
+.pillar__body {
+  margin: 0;
+  font-size: var(--fs-300);
+  color: var(--c-text);
+}
+.pillar__quote-author {
+  display: block;
+  margin-block-start: var(--space-2);
+  font-size: var(--fs-200);
+  color: var(--c-text-soft);
+  font-weight: 500;
+}
+
+/* Legacy alias so anything still targeting .card renders in the same place. */
 .card {
   background: var(--c-surface);
   border: 1px solid var(--c-rule);
-  border-radius: var(--radius);
+  border-radius: var(--radius-2);
   padding: var(--space-5);
   box-shadow: var(--shadow-1);
 }
-.card h3 {
-  margin: 0 0 var(--space-3);
-  font-size: var(--fs-4);
-  color: var(--c-accent);
-}
-.card p {
-  margin: 0;
-  color: var(--c-text);
-}
 
-/* link card */
+/* ════════════════════════════════════════════════════════════════
+ * 5.3 Link cards — live vs coming-soon
+ * ════════════════════════════════════════════════════════════════ */
 .link-card {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  text-decoration: none;
+  padding: var(--space-4);
   background: var(--c-surface);
   border: 1px solid var(--c-rule);
-  border-radius: var(--radius);
-  padding: var(--space-4);
-  color: var(--c-text);
+  border-radius: var(--radius-2);
   box-shadow: var(--shadow-1);
+  color: var(--c-text);
+  text-decoration: none;
+  min-height: 56px;
+  transition: box-shadow 120ms ease, border-color 120ms ease, background-color 120ms ease;
 }
-.link-card:hover { box-shadow: var(--shadow-2); border-color: var(--c-accent); }
-.link-card[aria-disabled="true"] {
-  opacity: 0.65;
+.link-card:hover,
+.link-card:focus-visible {
+  box-shadow: var(--shadow-2);
+  border-color: var(--c-accent);
+}
+.link-card__label {
+  flex: 1;
+  font-weight: 600;
+  font-size: var(--fs-300);
+}
+.link-card__arrow {
+  margin-inline-start: auto;
+  color: var(--c-accent);
+  text-decoration: none;
+}
+.link-card[aria-disabled="true"],
+.link-card.is-disabled {
+  background: var(--c-joy-soft);
+  border-color: transparent;
+  color: var(--c-text-soft);
   cursor: not-allowed;
-  background: var(--c-warn-soft);
+  box-shadow: none;
 }
-.link-card__label { flex: 1; font-weight: 600; }
+.link-card[aria-disabled="true"]:hover,
+.link-card[aria-disabled="true"]:focus-visible {
+  box-shadow: none;
+  border-color: transparent;
+}
 .link-card__status {
-  font-size: var(--fs-1);
-  background: var(--c-warn);
-  color: white;
+  display: inline-block;
+  background: var(--c-joy);
+  color: #fff;
+  font-size: var(--fs-100);
+  font-weight: 700;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
-/* contact strip */
+/* ════════════════════════════════════════════════════════════════
+ * 5.4 Contact strip
+ * ════════════════════════════════════════════════════════════════ */
 .contact-strip {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
-  background: var(--c-accent-soft);
-  border-radius: var(--radius);
+  background: var(--c-brand-soft);
+  border-radius: var(--radius-3);
   padding: var(--space-5);
+  max-width: 720px;
 }
-.contact-strip dl { margin: 0; display: grid; gap: var(--space-2); }
-.contact-strip dt { font-weight: 700; color: var(--c-accent); }
-.contact-strip dd { margin: 0; }
+@media (min-width: 768px) {
+  .contact-strip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+}
+.contact-strip dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+@media (min-width: 768px) {
+  .contact-strip dl {
+    grid-template-columns: max-content 1fr;
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+  }
+}
+.contact-strip dt {
+  font-weight: 700;
+  color: var(--c-brand-deep);
+  font-size: var(--fs-200);
+}
+.contact-strip dd {
+  margin: 0;
+  color: var(--c-text);
+  font-size: var(--fs-300);
+}
+.contact-strip dd a {
+  color: var(--c-accent);
+  text-decoration: none;
+}
+.contact-strip dd a:hover,
+.contact-strip dd a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 
-/* registration page */
-.notice {
-  background: var(--c-warn-soft);
-  border-inline-start: 4px solid var(--c-warn);
-  padding: var(--space-4);
-  border-radius: var(--radius);
+/* ════════════════════════════════════════════════════════════════
+ * 5.5 Parents message card + empty state
+ * ════════════════════════════════════════════════════════════════ */
+.message {
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-2);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-1);
   margin-block-end: var(--space-4);
+  max-width: 720px;
+}
+.message__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: baseline;
+  margin-block-end: var(--space-3);
+}
+.message__author {
+  font-weight: 700;
+  color: var(--c-text);
+  font-size: var(--fs-200);
+}
+.message__time {
+  font-size: var(--fs-200);
+  color: var(--c-text-soft);
+}
+.message__sep {
+  color: var(--c-text-soft);
+  margin-inline: var(--space-1);
+}
+.message__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--c-accent-deep);
+}
+.message__body {
+  margin: 0;
+  font-size: var(--fs-300);
+  color: var(--c-text);
+  line-height: var(--lh);
 }
 
-/* parents empty state */
 .empty-state {
   text-align: center;
   padding: var(--space-7) var(--space-4);
   color: var(--c-text-soft);
   background: var(--c-surface);
   border: 1px dashed var(--c-rule);
-  border-radius: var(--radius);
+  border-radius: var(--radius-2);
+  max-width: 720px;
 }
-.empty-state h3 { margin: 0 0 var(--space-2); color: var(--c-text); }
+.empty-state h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--c-text);
+  font-size: var(--fs-500);
+}
+.empty-state p {
+  margin: 0;
+  font-size: var(--fs-300);
+}
 
-/* footer */
+/* ════════════════════════════════════════════════════════════════
+ * Registration page — notice block
+ * ════════════════════════════════════════════════════════════════ */
+.notice {
+  background: var(--c-warn-soft);
+  border-inline-start: 4px solid var(--c-warn);
+  padding: var(--space-4);
+  border-radius: var(--radius-2);
+  margin-block-end: var(--space-5);
+  color: var(--c-text);
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * 5.7 Site-footer
+ * ════════════════════════════════════════════════════════════════ */
 .site-footer {
   border-block-start: 1px solid var(--c-rule);
-  background: var(--c-surface);
+  background: var(--c-surface-alt);
   padding: var(--space-5) var(--space-4);
   text-align: center;
   color: var(--c-text-soft);
-  font-size: var(--fs-1);
+  font-size: var(--fs-100);
 }
-.site-footer a { color: var(--c-accent); text-decoration: none; }
-.site-footer a:hover { text-decoration: underline; }
+.site-footer a {
+  color: var(--c-accent-deep);
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+.site-footer a:hover,
+.site-footer a:focus-visible {
+  text-decoration: underline;
+}
 
-/* small utility */
-.visually-hidden {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
+/* ════════════════════════════════════════════════════════════════
+ * Phase 4 — dormant AI chat shell (already merged; styles preserved)
+ * ════════════════════════════════════════════════════════════════ */
+ai-chat { display: contents; }
+ai-chat:not(:defined) { display: none; }
+.ai-chat-fab {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
   border: 0;
+  background: var(--c-brand);
+  color: var(--c-text-invert);
+  font-size: var(--fs-500);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  z-index: 50;
 }
-
-/* narrow phones */
-@media (max-width: 380px) {
-  .hero { padding: var(--space-5) var(--space-4); }
-  .hero h1 { font-size: var(--fs-5); }
+.ai-chat-fab:hover,
+.ai-chat-fab:focus-visible {
+  background: var(--c-brand-deep);
+}
+.ai-chat-panel {
+  position: fixed;
+  inset-block-end: 76px;
+  inset-inline-end: var(--space-4);
+  width: min(360px, calc(100vw - var(--space-6)));
+  max-height: min(520px, 75vh);
+  background: var(--c-surface);
+  border: 1px solid var(--c-rule);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+}
+.ai-chat-panel__header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--c-brand);
+  color: var(--c-text-invert);
+  font-weight: 700;
+  font-size: var(--fs-300);
+}
+.ai-chat-panel__body {
+  padding: var(--space-4);
+  flex: 1 1 auto;
+  overflow: auto;
+  color: var(--c-text);
+  font-size: var(--fs-300);
+}
+.ai-chat-panel__body--dormant {
+  text-align: center;
+  color: var(--c-text-soft);
+}
+.ai-chat-pill-dormant {
+  display: inline-block;
+  background: var(--c-warn-soft);
+  color: var(--c-warn);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: var(--fs-100);
+  margin-block-end: var(--space-3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .link-card,
+  .ai-chat-fab { transition: none !important; }
 }
