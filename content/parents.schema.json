@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Democratic School — parents (הנהגת הורים)",
+  "description": "Public parent-council message board. Append-only. Each entry is a single message; do not edit historical messages except to redact. Add new ones at the top (newest first).",
+  "type": "object",
+  "required": ["description", "messages"],
+  "properties": {
+    "description": { "type": "string", "const": "הודעות הנהגת הורים" },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "date", "title_he", "body_he", "source"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^m_[0-9]{8}_[a-z0-9_]{3,16}$",
+            "description": "Stable id. Format m_YYYYMMDD_short. Used as anchor."
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "ISO 8601 (YYYY-MM-DD)."
+          },
+          "title_he": { "type": "string", "minLength": 2, "maxLength": 120 },
+          "body_he": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "author": { "type": "string", "maxLength": 80, "description": "Optional. Use 'הנהגת הורים' for default." },
+          "category": {
+            "type": "string",
+            "enum": ["general", "transport", "registration", "schedule", "safety", "budget"],
+            "description": "Tag for filtering (UI may group by it)."
+          },
+          "source": {
+            "type": "string",
+            "enum": ["heneget-direct", "school-management", "city-herzliya", "other"]
+          },
+          "pin_until": {
+            "type": "string",
+            "format": "date",
+            "description": "Optional. While today <= pin_until, the message floats to top with a pin icon."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

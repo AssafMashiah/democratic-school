@@ -25,7 +25,37 @@
   <main data-page="parents">
     <h1>הנהגת הורים</h1>
     <p id="parents-desc">טוען…</p>
-    <div id="parents-list"></div>
+
+    <details class="parents-admin" data-assaf-only>
+      <summary>פעולות לעורכים</summary>
+      <ol>
+        <li>
+          <strong>הוסיפו הודעה חדשה:</strong>
+          ערכו את
+          <a href="https://github.com/AssafMashiah/democratic-school/edit/dev/content/parents.json"
+             target="_blank" rel="noopener noreferrer"
+             >content/parents.json</a>
+          ישירות בגיטהאב. הוסיפו איבר חדש בראש
+          <code>messages</code> עם <code>id</code> ייחודי בפורמט
+          <code>m_YYYYMMDD_short</code>.
+        </li>
+        <li>
+          <strong>אמתו מקומית:</strong>
+          <code>python3 scripts/validate-parents.py</code> בודק את
+          <code>parents.json</code> מול <code>parents.schema.json</code>.
+        </li>
+        <li>
+          <strong>פרסום:</strong>
+          פתחו PR — הדחיפה ל-<code>dev</code> תפרסם אוטומטית לאחר
+          הגדרת Cloudflare Pages Git Integration.
+        </li>
+      </ol>
+    </details>
+
+    <section aria-labelledby="parents-board-heading">
+      <h2 id="parents-board-heading">הודעות</h2>
+      <div id="parents-list" aria-live="polite"></div>
+    </section>
   </main>
 
   <footer class="site-footer">
