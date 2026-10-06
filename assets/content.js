@@ -36,18 +36,26 @@
     return dl;
   }
 
+  // Source prose (body_he) is rendered verbatim — attributions stay inline.
+  // quote_author is structured metadata; its visual line is aria-hidden
+  // because the same attribution is already read out in the body.
   function pillarCard(p) {
-    const m = (p.body_he || '').match(/\(([^)]+)\)\s*$/);
-    const body = (p.body_he || '').replace(/\s*\(([^)]+)\)\s*$/, '');
     const art = make('article', 'pillar');
     const icon = make('span', 'pillar__icon', (p.title_he || 'א').trim().charAt(0));
     icon.setAttribute('aria-hidden', 'true');
     art.appendChild(icon);
     art.appendChild(make('h3', 'pillar__title', p.title_he));
-    art.appendChild(make('p', 'pillar__body', body));
-    if (m) art.appendChild(make('span', 'pillar__quote-author', m[1]));
+    art.appendChild(make('p', 'pillar__body', p.body_he || ''));
+    if (p.quote_author) {
+      const a = make('span', 'pillar__quote-author', p.quote_author);
+      a.setAttribute('aria-hidden', 'true');
+      art.appendChild(a);
+    }
     return art;
   }
+
+  // parents.schema.json uses title_he/body_he; legacy title/body still accepted.
+  const str = (...vs) => vs.find((v) => typeof v === 'string' && v.trim()) || '';
 
   function messageCard(m) {
     const art = make('article', 'message');
@@ -58,8 +66,10 @@
       meta.appendChild(make('span', 'message__author', m.author));
     }
     art.appendChild(meta);
-    if (m.title) art.appendChild(make('h3', 'message__title', m.title));
-    art.appendChild(make('p', 'message__body', m.body));
+    const title = str(m.title_he, m.title);
+    const body = str(m.body_he, m.body);
+    if (title) art.appendChild(make('h3', 'message__title', title));
+    if (body) art.appendChild(make('p', 'message__body', body));
     return art;
   }
 

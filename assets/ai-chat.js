@@ -1,7 +1,8 @@
 // <ai-chat> — site-scoped assistant, dormant by default.
-// Talks to /api/chat. If the endpoint returns 503 the panel hides the
-// input and shows the dormant state with a clear Hebrew copy until
-// CHAT_ENABLED is flipped.
+// Talks to /api/chat. Fail-closed: the form is shown ONLY when the GET
+// probe returns 2xx JSON with { ok: true, enabled: true }. Anything else
+// (405 from the current post-only GET, 503, malformed body, network
+// error) keeps the form hidden and shows a Hebrew status line.
 
 class AiChat extends HTMLElement {
   connectedCallback() {
@@ -14,7 +15,7 @@ class AiChat extends HTMLElement {
     this.innerHTML = `
       <section class="ai-chat" aria-labelledby="ai-chat-heading">
         <header class="ai-chat__header">
-          <h2 id="ai-chat-heading">שאל אותנו</h2>
+          <h3 id="ai-chat-heading">שאל אותנו</h3>
           <p class="ai-chat__lede" id="ai-chat-lede">
             הצ׳אט יענה רק על שאלות שמבוססות על תוכן האתר.
           </p>
@@ -41,18 +42,28 @@ class AiChat extends HTMLElement {
     this.thread = this.querySelector("#ai-chat-thread");
   }
 
-  async refreshStatus() {
+  // Returns "enabled" | "dormant" | "unavailable" | "offline".
+  static async probe(fetchImpl = fetch) {
+    let r;
     try {
-      const r = await fetch("/api/chat", { method: "GET" });
-      if (r.status === 405) {
-        // Endpoint exists and accepts POST. Cheap probe; treat as available.
-        this.setEnabled();
-        return;
-      }
-      this.setDisabled(r.status === 503 ? "dormant" : "unavailable");
+      r = await fetchImpl("/api/chat", { method: "GET" });
     } catch {
-      this.setDisabled("offline");
+      return "offline";
     }
+    if (r.status === 405 || r.status === 503) return "dormant";
+    if (!r.ok) return "unavailable";
+    try {
+      const data = await r.json();
+      return data && data.ok === true && data.enabled === true ? "enabled" : "unavailable";
+    } catch {
+      return "unavailable";
+    }
+  }
+
+  async refreshStatus() {
+    const state = await AiChat.probe();
+    if (state === "enabled") this.setEnabled();
+    else this.setDisabled(state);
   }
 
   setEnabled() {
