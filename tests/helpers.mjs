@@ -35,10 +35,20 @@ class FakeEl {
   }
 }
 
+// Failure modes for renderPage `files` overrides: pass one as a file's value.
+export const FAIL = {
+  network: () => { throw new TypeError('Failed to fetch'); },
+  status: () => ({ ok: false, status: 500, json: async () => ({}) }),
+  malformed: () => ({ ok: true, json: async () => { throw new SyntaxError('Unexpected token'); } }),
+};
+
 // Runs assets/content.js for `page` against a fake DOM. `files` overrides
-// content/*.json by name; everything else is read from the repo.
-export async function renderPage(page, ids, files = {}) {
+// content/*.json by name (a function value is a FAIL mode); everything else
+// is read from the repo. `initial` seeds element text (e.g. 'טוען…').
+// Logged errors throw unless `expectErrors` is set.
+export async function renderPage(page, ids, files = {}, { initial = {}, expectErrors = false } = {}) {
   const els = Object.fromEntries(ids.map((id) => [id, new FakeEl('div')]));
+  for (const [id, txt] of Object.entries(initial)) els[id].textContent = txt;
   let onReady;
   const document = {
     currentScript: null,
@@ -49,6 +59,7 @@ export async function renderPage(page, ids, files = {}) {
   };
   const fetch = async (url) => {
     const name = url.replace('./content/', '');
+    if (typeof files[name] === 'function') return files[name]();
     const body = name in files ? files[name] : readJson('content/' + name);
     return { ok: true, json: async () => body };
   };
@@ -57,7 +68,7 @@ export async function renderPage(page, ids, files = {}) {
   vm.runInNewContext(read('assets/content.js'), { document, fetch, console });
   onReady();
   await new Promise((r) => setTimeout(r, 10));
-  if (errors.length) throw errors[0];
+  if (errors.length && !expectErrors) throw errors[0];
   return els;
 }
 

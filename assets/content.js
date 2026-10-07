@@ -5,10 +5,28 @@
 (function () {
   const base = (document.currentScript && document.currentScript.dataset.base) || './content/';
   const page = (document.querySelector('main[data-page]') || {}).dataset && document.querySelector('main[data-page]').dataset.page;
-  const j = (n) => fetch(base + n).then((r) => r.ok ? r.json() : Promise.reject(new Error('fetch ' + n + ' ' + r.status)));
+  // Memoized so sections sharing a file (school.json) fetch it once.
+  const cache = {};
+  const j = (n) => cache[n] || (cache[n] = fetch(base + n).then((r) => r.ok ? r.json() : Promise.reject(new Error('fetch ' + n + ' ' + r.status))));
   const $ = (id) => document.getElementById(id);
   const clear = (n) => { while (n.firstChild) n.removeChild(n.firstChild); };
   const make = (t, c, txt) => { const x = document.createElement(t); if (c) x.className = c; if (txt != null) x.textContent = txt; return x; };
+
+  const LOAD_ERROR = 'לא הצלחנו לטעון את התוכן. נסו לרענן את הדף.';
+
+  // Each independent section loads and renders on its own: a network error,
+  // non-OK response or malformed JSON replaces only that section's
+  // placeholders with LOAD_ERROR, so other sections still render.
+  function section(files, ids, render) {
+    return Promise.all(files.map(j)).then((d) => render(...d)).catch((e) => {
+      console.error(e);
+      ids.forEach((id) => {
+        const n = $(id); if (!n) return;
+        n.textContent = '';
+        n.appendChild(make('span', 'load-error', LOAD_ERROR));
+      });
+    });
+  }
 
   function linkCard(l) {
     const isLive = l && l.url;
@@ -37,8 +55,8 @@
   }
 
   // Source prose (body_he) is rendered verbatim — attributions stay inline.
-  // quote_author is structured metadata; its visual line is aria-hidden
-  // because the same attribution is already read out in the body.
+  // quote_author is metadata only; it is not rendered, since body_he already
+  // carries the same attribution.
   function pillarCard(p) {
     const art = make('article', 'pillar');
     const icon = make('span', 'pillar__icon', (p.title_he || 'א').trim().charAt(0));
@@ -46,11 +64,6 @@
     art.appendChild(icon);
     art.appendChild(make('h3', 'pillar__title', p.title_he));
     art.appendChild(make('p', 'pillar__body', p.body_he || ''));
-    if (p.quote_author) {
-      const a = make('span', 'pillar__quote-author', p.quote_author);
-      a.setAttribute('aria-hidden', 'true');
-      art.appendChild(a);
-    }
     return art;
   }
 
@@ -107,29 +120,35 @@
     });
   }
 
+  // Static headings (hero-name, np-title) are never listed as error targets,
+  // so their HTML fallback text survives a failed load.
   const renderers = {
-    async home() {
-      const [school, phil, links] = await Promise.all([j('school.json'), j('philosophy.json'), j('links.json')]);
-      if ($('hero-name')) $('hero-name').textContent = school.name_full_he;
-      if ($('hero-tagline')) $('hero-tagline').textContent = school.tagline_he;
-      if ($('philosophy-intro')) $('philosophy-intro').textContent = phil.intro;
-      const g = $('pillars'); if (g) { clear(g); phil.pillars.forEach((p) => g.appendChild(pillarCard(p))); }
-      const le = $('links'); if (le) {
+    home: () => Promise.all([
+      section(['school.json'], ['hero-tagline', 'contact-strip'], (school) => {
+        if ($('hero-name')) $('hero-name').textContent = school.name_full_he;
+        if ($('hero-tagline')) $('hero-tagline').textContent = school.tagline_he;
+        const c = $('contact-strip'); if (c) { clear(c); c.appendChild(contactDl(school)); }
+      }),
+      section(['philosophy.json'], ['philosophy-intro', 'pillars'], (phil) => {
+        if ($('philosophy-intro')) $('philosophy-intro').textContent = phil.intro;
+        const g = $('pillars'); if (g) { clear(g); phil.pillars.forEach((p) => g.appendChild(pillarCard(p))); }
+      }),
+      section(['links.json'], ['links'], (links) => {
+        const le = $('links'); if (!le) return;
         clear(le);
         ['facebook', 'whatsapp', 'padlet', 'remote_learning_canva', 'remote_learning_video'].map((k) => links[k]).filter(Boolean).forEach((l) => le.appendChild(linkCard(l)));
-      }
-      const c = $('contact-strip'); if (c) { clear(c); c.appendChild(contactDl(school)); }
+      }),
+    ]),
+    registration: () => {
+      const ids = ['reg-window', 'reg-audience', 'reg-lottery', 'reg-payment', 'reg-transport'];
+      return section(['registration.json'], ids, (r) => {
+        [r.window, r.audience_note, r.lottery_note, r.payment_note, r.transport_note].forEach((v, i) => { const n = $(ids[i]); if (n) n.textContent = v || ''; });
+      });
     },
-    async registration() {
-      const r = await j('registration.json');
-      [['reg-window', r.window], ['reg-audience', r.audience_note], ['reg-lottery', r.lottery_note], ['reg-payment', r.payment_note], ['reg-transport', r.transport_note]].forEach(([id, v]) => { const n = $(id); if (n) n.textContent = v || ''; });
-    },
-    async contact() {
-      const s = await j('school.json');
+    contact: () => section(['school.json'], ['contact-card'], (s) => {
       const c = $('contact-card'); if (c) { clear(c); c.appendChild(contactDl(s)); }
-    },
-    async parents() {
-      const p = await j('parents.json');
+    }),
+    parents: () => section(['parents.json'], ['parents-desc', 'parents-list'], (p) => {
       if ($('parents-desc')) $('parents-desc').textContent = p.description || '';
       const list = $('parents-list'); if (!list) return;
       clear(list);
@@ -139,15 +158,18 @@
         e.appendChild(make('p', null, 'כאן יופיעו הודעות הנהגת הורים ברגע שיתווספו.'));
         list.appendChild(e);
       } else p.messages.forEach((m) => list.appendChild(messageCard(m)));
-    },
-    async 'new-parents'() {
-      const [faq, school] = await Promise.all([j('faq.json'), j('school.json')]);
-      if ($('np-title')) $('np-title').textContent = faq.title_he || 'חדשים כאן?';
-      if ($('np-tagline')) $('np-tagline').textContent = school.tagline_he || '';
-      if ($('np-intro')) $('np-intro').textContent = faq.intro_he || '';
-      const list = $('np-faq-list'); if (list) { clear(list); list.appendChild(faqList(faq.items)); }
-      setJsonLd(faq.items);
-    },
+    }),
+    'new-parents': () => Promise.all([
+      section(['faq.json'], ['np-intro', 'np-faq-list'], (faq) => {
+        if ($('np-title')) $('np-title').textContent = faq.title_he || 'חדשים כאן?';
+        if ($('np-intro')) $('np-intro').textContent = faq.intro_he || '';
+        const list = $('np-faq-list'); if (list) { clear(list); list.appendChild(faqList(faq.items)); }
+        setJsonLd(faq.items);
+      }),
+      section(['school.json'], ['np-tagline'], (school) => {
+        if ($('np-tagline')) $('np-tagline').textContent = school.tagline_he || '';
+      }),
+    ]),
   };
 
   document.addEventListener('DOMContentLoaded', () => { if (page && renderers[page]) renderers[page]().catch(console.error); });

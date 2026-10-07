@@ -342,12 +342,9 @@ main > h1 {
   font-size: var(--fs-300);
   color: var(--c-text);
 }
-.pillar__quote-author {
-  display: block;
-  margin-block-start: var(--space-2);
-  font-size: var(--fs-200);
-  color: var(--c-text-soft);
-  font-weight: 500;
+.load-error {
+  color: var(--c-text);
+  font-weight: 600;
 }
 
 /* Legacy alias so anything still targeting .card renders in the same place. */
