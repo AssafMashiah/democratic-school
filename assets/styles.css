@@ -193,11 +193,8 @@ main {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-}
-.brand-dot {
-  color: var(--c-leaf);
-  font-size: 0.75em;
-  line-height: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 .site-nav {
   display: flex;
@@ -236,6 +233,7 @@ main {
   line-height: 1.2;
   font-weight: 700;
   color: var(--c-text);
+  overflow-wrap: break-word;
 }
 .hero p.tagline {
   margin: var(--space-3) 0 0;
@@ -261,11 +259,13 @@ main {
 }
 .btn--primary {
   background: var(--c-joy);
-  color: #fff; /* 4.7:1 on --c-joy — AA normal */
+  color: #fff; /* 5.38:1 on --c-joy — AA normal */
 }
+/* Hover uses --c-brand-deep, not --c-brand: #FCFCFA on #4F81BD is only
+ * ~4.0:1, below AA-normal for 17px bold. On #2F5E94 it is ~6.5:1. */
 .btn--primary:hover,
 .btn--primary:focus-visible {
-  background: var(--c-brand);
+  background: var(--c-brand-deep);
   color: var(--c-text-invert);
 }
 
@@ -289,6 +289,7 @@ main > h1 {
   margin-block-end: var(--space-5);
   font-size: var(--fs-700);
   font-weight: 700;
+  overflow-wrap: break-word;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -341,12 +342,9 @@ main > h1 {
   font-size: var(--fs-300);
   color: var(--c-text);
 }
-.pillar__quote-author {
-  display: block;
-  margin-block-start: var(--space-2);
-  font-size: var(--fs-200);
-  color: var(--c-text-soft);
-  font-weight: 500;
+.load-error {
+  color: var(--c-text);
+  font-weight: 600;
 }
 
 /* Legacy alias so anything still targeting .card renders in the same place. */
@@ -561,75 +559,86 @@ main > h1 {
 }
 
 /* ════════════════════════════════════════════════════════════════
- * Phase 4 — dormant AI chat shell (already merged; styles preserved)
+ * Dormant AI chat shell
  * ════════════════════════════════════════════════════════════════ */
 ai-chat { display: contents; }
 ai-chat:not(:defined) { display: none; }
-.ai-chat-fab {
-  position: fixed;
-  inset-block-end: var(--space-4);
-  inset-inline-end: var(--space-4);
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 0;
-  background: var(--c-brand);
-  color: var(--c-text-invert);
-  font-size: var(--fs-500);
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-2);
-  z-index: 50;
+
+/* ════════════════════════════════════════════════════════════════
+ * FAQ cards — native <details>/<summary> (new-parents page, parents admin)
+ * ════════════════════════════════════════════════════════════════ */
+.faq {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 720px;
 }
-.ai-chat-fab:hover,
-.ai-chat-fab:focus-visible {
-  background: var(--c-brand-deep);
-}
-.ai-chat-panel {
-  position: fixed;
-  inset-block-end: 76px;
-  inset-inline-end: var(--space-4);
-  width: min(360px, calc(100vw - var(--space-6)));
-  max-height: min(520px, 75vh);
+.faq__item,
+.parents-admin {
   background: var(--c-surface);
   border: 1px solid var(--c-rule);
-  border-radius: var(--radius-3);
-  box-shadow: var(--shadow-2);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-1);
+}
+.parents-admin { margin-block-end: var(--space-5); max-width: 720px; }
+.faq__item[open] { border-color: var(--c-accent); }
+.faq__q,
+.parents-admin > summary {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 50;
-}
-.ai-chat-panel__header {
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
   padding: var(--space-3) var(--space-4);
-  background: var(--c-brand);
-  color: var(--c-text-invert);
   font-weight: 700;
-  font-size: var(--fs-300);
+  color: var(--c-accent-deep);
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-2);
 }
-.ai-chat-panel__body {
-  padding: var(--space-4);
-  flex: 1 1 auto;
-  overflow: auto;
+.faq__q::-webkit-details-marker,
+.parents-admin > summary::-webkit-details-marker { display: none; }
+.faq__q::before,
+.parents-admin > summary::before {
+  content: "+";
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-accent-soft);
+  color: var(--c-accent-deep);
+  line-height: 1;
+}
+.faq__item[open] > .faq__q::before,
+.parents-admin[open] > summary::before { content: "−"; }
+.faq__q:hover,
+.parents-admin > summary:hover { background: var(--c-bg); }
+.faq__q:focus-visible,
+.parents-admin > summary:focus-visible {
+  outline: 3px solid var(--c-focus-ring);
+  outline-offset: 2px;
+  background: var(--c-accent-soft);
+}
+.faq__a {
+  padding: 0 var(--space-4) var(--space-3);
   color: var(--c-text);
-  font-size: var(--fs-300);
 }
-.ai-chat-panel__body--dormant {
-  text-align: center;
+.faq__source {
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-3);
+  font-size: var(--fs-200);
   color: var(--c-text-soft);
 }
-.ai-chat-pill-dormant {
-  display: inline-block;
-  background: var(--c-warn-soft);
-  color: var(--c-warn);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  font-weight: 700;
-  font-size: var(--fs-100);
-  margin-block-end: var(--space-3);
-}
-@media (prefers-reduced-motion: reduce) {
-  .btn,
-  .link-card,
-  .ai-chat-fab { transition: none !important; }
+.parents-admin > ol { margin: 0; padding: 0 var(--space-6) var(--space-4); }
+
+/* ════════════════════════════════════════════════════════════════
+ * Small phones (≤480px): scale down site title + headings so long
+ * Hebrew names wrap instead of clipping. No nowrap anywhere.
+ * ════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .site-title { font-size: var(--fs-400); }
+  .hero { padding: var(--space-5) var(--space-4); }
+  .hero h1,
+  main > h1 { font-size: clamp(1.5rem, 7vw, var(--fs-700)); }
 }

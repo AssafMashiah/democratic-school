@@ -2,6 +2,8 @@
   "name": "democratic-school",
   "private": true,
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "validate:content": "python3 scripts/validate-content.py",
     "deploy:dev": "wrangler pages deploy . --project-name democratic-school --branch dev --commit-dirty=true",
     "deploy:prod": "wrangler pages deploy . --project-name democratic-school --branch main --commit-dirty=true",
     "logs:dev": "wrangler pages deployment tail --project-name democratic-school",
